@@ -23,6 +23,16 @@ Birinchi ishga tushishda Telegram kodi va 2FA paroli so'raladi. Session fayli sh
 
 `MODE=forward` manba ko'rsatkichini saqlaydi. `MODE=copy` esa xabarni manbasiz nusxalaydi.
 
+## Railway uchun session
+
+Lokal login tugagach, session string oling:
+
+```powershell
+python export_session.py
+```
+
+Chiqqan uzun qiymatni Railway Variables bo'limida `SESSION_STRING` nomi bilan saqlang. Railway'da `SESSION_STRING` bo'lsa, dastur login kodini qayta so'ramaydi.
+
 ## Username yo'q bo'lsa
 
 Private kanal yoki guruh uchun ID olish:

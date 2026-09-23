@@ -5,6 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from telethon import TelegramClient, events
+from telethon.sessions import StringSession
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -53,8 +54,15 @@ async def main() -> None:
     if mode not in {"forward", "copy"}:
         raise RuntimeError("MODE faqat forward yoki copy bo'lishi mumkin")
 
-    client = TelegramClient(str(BASE_DIR / "forwarder"), api_id, api_hash)
-    await client.start(phone=phone)
+    session_string = os.getenv("SESSION_STRING", "").strip()
+    session = StringSession(session_string) if session_string else str(BASE_DIR / "forwarder")
+    client = TelegramClient(session, api_id, api_hash)
+    if session_string:
+        await client.connect()
+        if not await client.is_user_authorized():
+            raise RuntimeError("SESSION_STRING yaroqsiz yoki muddati tugagan")
+    else:
+        await client.start(phone=phone)
 
     source_entity = await client.get_entity(source)
     destination_entities = [await client.get_entity(item) for item in destinations]
