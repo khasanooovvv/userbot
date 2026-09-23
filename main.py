@@ -96,13 +96,13 @@ async def main() -> None:
         message = event.message
         text = message.raw_text or ""
         is_humo = (getattr(event.chat, "username", "") or "").lower() == humo_source.lstrip("@")
+        if allowed_amounts and not amount_matches(text, allowed_amounts):
+            logger.info("Xabar %s o'tkazib yuborildi: summa mos emas", message.id)
+            return
         if is_humo:
             if "➕" not in text or humo_card_last4 not in text:
                 logger.info("Xabar %s o'tkazib yuborildi: HUMO filtri mos emas", message.id)
                 return
-        elif allowed_amounts and not amount_matches(text, allowed_amounts):
-            logger.info("Xabar %s o'tkazib yuborildi: summa mos emas", message.id)
-            return
         if not is_humo and card_last4 and card_last4 not in text:
             logger.info("Xabar %s o'tkazib yuborildi: karta mos emas", message.id)
             return
