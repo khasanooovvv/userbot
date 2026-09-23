@@ -68,6 +68,8 @@ async def main() -> None:
         if re.sub(r"\D", "", item)
     }
     card_last4 = re.sub(r"\D", "", os.getenv("FILTER_CARD_LAST4", ""))
+    humo_source = os.getenv("HUMO_SOURCE", "@HUMOcardbot").strip().lower()
+    humo_card_last4 = re.sub(r"\D", "", os.getenv("HUMO_CARD_LAST4", "9963"))
     required_text = os.getenv("FILTER_REQUIRED_TEXT", "Perevod na kartu").strip().lower()
 
     session_string = os.getenv("SESSION_STRING", "").strip()
@@ -88,13 +90,19 @@ async def main() -> None:
     @client.on(events.NewMessage(chats=source_entities))
     async def forward_new_message(event):
         message = event.message
-        if allowed_amounts and not amount_matches(message.raw_text or "", allowed_amounts):
+        text = message.raw_text or ""
+        is_humo = (getattr(event.chat, "username", "") or "").lower() == humo_source.lstrip("@")
+        if is_humo:
+            if "➕" not in text or humo_card_last4 not in text:
+                logger.info("Xabar %s o'tkazib yuborildi: HUMO filtri mos emas", message.id)
+                return
+        elif allowed_amounts and not amount_matches(text, allowed_amounts):
             logger.info("Xabar %s o'tkazib yuborildi: summa mos emas", message.id)
             return
-        if card_last4 and card_last4 not in (message.raw_text or ""):
+        if not is_humo and card_last4 and card_last4 not in text:
             logger.info("Xabar %s o'tkazib yuborildi: karta mos emas", message.id)
             return
-        if required_text and required_text not in (message.raw_text or "").lower():
+        if not is_humo and required_text and required_text not in text.lower():
             logger.info("Xabar %s o'tkazib yuborildi: xabar turi mos emas", message.id)
             return
         for destination in destination_entities:
