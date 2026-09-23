@@ -70,7 +70,11 @@ async def main() -> None:
     card_last4 = re.sub(r"\D", "", os.getenv("FILTER_CARD_LAST4", ""))
     humo_source = os.getenv("HUMO_SOURCE", "@HUMOcardbot").strip().lower()
     humo_card_last4 = re.sub(r"\D", "", os.getenv("HUMO_CARD_LAST4", "9963"))
-    required_text = os.getenv("FILTER_REQUIRED_TEXT", "Perevod na kartu").strip().lower()
+    required_texts = [
+        item.strip().lower()
+        for item in os.getenv("FILTER_REQUIRED_TEXT", "🟢,➕").split(",")
+        if item.strip()
+    ]
 
     session_string = os.getenv("SESSION_STRING", "").strip()
     session = StringSession(session_string) if session_string else str(BASE_DIR / "forwarder")
@@ -102,7 +106,7 @@ async def main() -> None:
         if not is_humo and card_last4 and card_last4 not in text:
             logger.info("Xabar %s o'tkazib yuborildi: karta mos emas", message.id)
             return
-        if not is_humo and required_text and required_text not in text.lower():
+        if not is_humo and required_texts and not any(item in text.lower() for item in required_texts):
             logger.info("Xabar %s o'tkazib yuborildi: xabar turi mos emas", message.id)
             return
         for destination in destination_entities:
