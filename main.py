@@ -65,6 +65,7 @@ async def main() -> None:
         if re.sub(r"\D", "", item)
     }
     card_last4 = re.sub(r"\D", "", os.getenv("FILTER_CARD_LAST4", ""))
+    required_text = os.getenv("FILTER_REQUIRED_TEXT", "Perevod na kartu").strip().lower()
 
     session_string = os.getenv("SESSION_STRING", "").strip()
     session = StringSession(session_string) if session_string else str(BASE_DIR / "forwarder")
@@ -89,6 +90,9 @@ async def main() -> None:
             return
         if card_last4 and card_last4 not in (message.raw_text or ""):
             logger.info("Xabar %s o'tkazib yuborildi: karta mos emas", message.id)
+            return
+        if required_text and required_text not in (message.raw_text or "").lower():
+            logger.info("Xabar %s o'tkazib yuborildi: xabar turi mos emas", message.id)
             return
         for destination in destination_entities:
             try:
