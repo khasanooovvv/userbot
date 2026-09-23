@@ -48,3 +48,4 @@ DESTINATION_CHATS=-1001234567890
 ```
 
 `FILTER_AMOUNTS` orqali faqat kerakli summalarni qabul qilish mumkin. Summalarni vergul bilan ajrating.
+`FILTER_CARD_LAST4` orqali pul tushadigan karta oxirgi 4 raqamini belgilang.
