@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import re
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -33,6 +34,11 @@ def chat_value(value: str):
         return value
 
 
+def amount_matches(message_text: str, allowed_amounts: set[str]) -> bool:
+    candidates = re.findall(r"(?<!\d)(\d{1,3}(?:[ ,.\u00a0]\d{3})+|\d+)(?!\d)", message_text)
+    return any(re.sub(r"\D", "", item) in allowed_amounts for item in candidates)
+
+
 async def main() -> None:
     try:
         api_id = int(required("API_ID"))
@@ -53,6 +59,11 @@ async def main() -> None:
     mode = os.getenv("MODE", "forward").strip().lower()
     if mode not in {"forward", "copy"}:
         raise RuntimeError("MODE faqat forward yoki copy bo'lishi mumkin")
+    allowed_amounts = {
+        re.sub(r"\D", "", item)
+        for item in os.getenv("FILTER_AMOUNTS", "").split(",")
+        if re.sub(r"\D", "", item)
+    }
 
     session_string = os.getenv("SESSION_STRING", "").strip()
     session = StringSession(session_string) if session_string else str(BASE_DIR / "forwarder")
@@ -72,6 +83,9 @@ async def main() -> None:
     @client.on(events.NewMessage(chats=source_entity))
     async def forward_new_message(event):
         message = event.message
+        if allowed_amounts and not amount_matches(message.raw_text or "", allowed_amounts):
+            logger.info("Xabar %s o'tkazib yuborildi: summa mos emas", message.id)
+            return
         for destination in destination_entities:
             try:
                 if mode == "copy":

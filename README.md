@@ -46,3 +46,5 @@ Ro'yxatdagi kerakli chatning ID'sini `.env` fayliga yozing. Kanal ID'si odatda `
 ```env
 DESTINATION_CHATS=-1001234567890
 ```
+
+`FILTER_AMOUNTS` orqali faqat kerakli summalarni qabul qilish mumkin. Summalarni vergul bilan ajrating.
