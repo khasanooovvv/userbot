@@ -47,7 +47,10 @@ async def main() -> None:
 
     api_hash = required("API_HASH")
     phone = required("PHONE_NUMBER")
-    source = chat_value(required("SOURCE_CHAT"))
+    source_values = os.getenv("SOURCE_CHATS", os.getenv("SOURCE_CHAT", ""))
+    if not source_values.strip():
+        raise RuntimeError(".env faylida SOURCE_CHATS ko'rsatilmagan")
+    sources = [chat_value(item) for item in source_values.split(",") if item.strip()]
     destinations = [
         chat_value(item)
         for item in required("DESTINATION_CHATS").split(",")
@@ -77,12 +80,12 @@ async def main() -> None:
     else:
         await client.start(phone=phone)
 
-    source_entity = await client.get_entity(source)
+    source_entities = [await client.get_entity(item) for item in sources]
     destination_entities = [await client.get_entity(item) for item in destinations]
-    logger.info("Kuzatilmoqda: %s", getattr(source_entity, "title", source))
+    logger.info("Kuzatilayotgan manbalar soni: %d", len(source_entities))
     logger.info("Qabul qiluvchilar soni: %d | rejim: %s", len(destination_entities), mode)
 
-    @client.on(events.NewMessage(chats=source_entity))
+    @client.on(events.NewMessage(chats=source_entities))
     async def forward_new_message(event):
         message = event.message
         if allowed_amounts and not amount_matches(message.raw_text or "", allowed_amounts):

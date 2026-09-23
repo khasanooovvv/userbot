@@ -47,6 +47,7 @@ Ro'yxatdagi kerakli chatning ID'sini `.env` fayliga yozing. Kanal ID'si odatda `
 DESTINATION_CHATS=-1001234567890
 ```
 
+`SOURCE_CHATS` orqali bir nechta manba chatni vergul bilan ajrating. Masalan: `SOURCE_CHATS=-1001111111111,@HUMOcardbot`.
 `FILTER_AMOUNTS` orqali faqat kerakli summalarni qabul qilish mumkin. Summalarni vergul bilan ajrating.
 `FILTER_CARD_LAST4` orqali pul tushadigan karta oxirgi 4 raqamini belgilang.
 `FILTER_REQUIRED_TEXT` xabarda bo'lishi shart bo'lgan iborani belgilaydi.
