@@ -174,6 +174,22 @@ async def main() -> None:
         operator_ids = {entity.id for entity in operator_entities}
         operator_reply_map = {}
 
+        async def notify_operators(event, text, title="Yangi support murojaati"):
+            sender = await event.get_sender()
+            username = getattr(sender, "username", None)
+            profile = (
+                f"<a href=\"https://t.me/{username}\">@{username}</a>"
+                if username
+                else f"<a href=\"tg://user?id={event.sender_id}\">Mijoz profilini ochish</a>"
+            )
+            for operator in operator_entities:
+                sent = await support_client.send_message(
+                    operator,
+                    f"📩 <b>{title}</b>\n👤 Mijoz: {profile}\n\n{text}",
+                    parse_mode="html",
+                )
+                operator_reply_map[sent.id] = event.sender_id
+
         @support_client.on(events.NewMessage(incoming=True))
         async def relay_operator_reply(event):
             if not event.is_private or event.sender_id not in operator_ids or not event.is_reply:
@@ -211,6 +227,7 @@ async def main() -> None:
                     state["last"] = normalized
                     state["repeats"] = 0
                 if state["repeats"] >= 2:
+                    await notify_operators(event, text, "Takroriy support murojaati")
                     await event.reply("Kechirasiz, suhbat tugatildi. Iltimos, aniq maqsadingiz yoki muammoingizni yozib qoldiring.")
                     return
                 first_message = "first" not in state
@@ -222,6 +239,7 @@ async def main() -> None:
                     )
                     return
                 if not is_xsnot_related(text) and not state.get("waiting_problem_details"):
+                    await notify_operators(event, text, "Botdan tashqari murojaat")
                     await event.reply(
                         "Iltimos, bot bo‘yicha aniq muammoni yozib qoldiring. "
                         "Boshqa savollarga javob berilmaydi va suhbat tugatiladi."
@@ -249,20 +267,7 @@ async def main() -> None:
                 else:
                     escalate = needs_operator(text)
                 if escalate:
-                    sender = await event.get_sender()
-                    username = getattr(sender, "username", None)
-                    profile = (
-                        f"<a href=\"https://t.me/{username}\">@{username}</a>"
-                        if username
-                        else f"<a href=\"tg://user?id={event.sender_id}\">Mijoz profilini ochish</a>"
-                    )
-                    for operator in operator_entities:
-                        sent = await support_client.send_message(
-                            operator,
-                            f"📩 <b>Yangi support muammosi</b>\n👤 Mijoz: {profile}\n\n{text}",
-                            parse_mode="html",
-                        )
-                        operator_reply_map[sent.id] = event.sender_id
+                    await notify_operators(event, text, "Yangi support muammosi")
                 response = await ai.responses.create(
                     model=os.getenv("OPENAI_MODEL", "gpt-5"),
                     instructions=support_prompt,
