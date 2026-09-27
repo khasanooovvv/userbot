@@ -190,8 +190,9 @@ async def main() -> None:
                 elif is_problem_intent(text):
                     state["waiting_problem_details"] = True
                     await event.reply(
-                        "Bot yoki to'lov tizimida muammo bo'lsa, iltimos muammoni batafsil yozib qoldiring. "
-                        "Keyin murojaatingiz operatorga yuboriladi."
+                        "Salom! To‘lov sekin ishlayotganidan uzr. Iltimos, qaysi to‘lov turi ekanini "
+                        "va qancha vaqt oldin amalga oshirganingizni yozing. Chek yoki to‘lov "
+                        "skrinshotini yuboring — operator tekshiradi va tez orada javob beradi."
                     )
                     return
                 else:
@@ -214,7 +215,7 @@ async def main() -> None:
                 if first_message:
                     reply = "Assalomu alaykum! Sizga qanday yordam bera olaman? Aniq maqsadingiz va shikoyatingizni yozib qoldiring, muammoni hal qilishga yordam beraman.\n\n" + reply
                 if escalate:
-                    reply += "\n\nMurojaatingiz operatorga yuborildi. Tez orada javob beriladi."
+                    reply += "\n\nMurojaatingiz operatorga yuborildi. Operator tekshiradi va tez orada javob beradi."
                 await event.reply(reply)
                 logger.info("Support javobi yuborildi: %s", event.id)
             except Exception:
