@@ -40,6 +40,17 @@ def amount_matches(message_text: str, allowed_amounts: set[str]) -> bool:
     return any(re.sub(r"\D", "", item) in allowed_amounts for item in candidates)
 
 
+def needs_operator(text: str) -> bool:
+    keywords = (
+        "muammo", "muammoli", "shikoyat", "operator", "yordam", "tushmadi", "kelmadi",
+        "ошибка", "проблем", "жалоб", "оператор", "помогите", "не приш", "не поступ",
+        "мәселе", "шағым", "оператор", "көмек", "түспеді", "келмеді",
+        "көйгөй", "даттануу", "оператор", "жардам", "түшкөн жок", "келген жок",
+    )
+    lowered = text.lower()
+    return any(keyword in lowered for keyword in keywords)
+
+
 async def main() -> None:
     try:
         api_id = int(required("API_ID"))
@@ -149,20 +160,25 @@ async def main() -> None:
                 return
             logger.info("Support xabari qabul qilindi: %s", event.sender_id)
             try:
-                for operator in operator_entities:
-                    await support_client.send_message(
-                        operator,
-                        f"📩 Yangi support murojaati (ID: {event.sender_id}):\n\n{text}",
-                    )
+                escalate = needs_operator(text)
+                if escalate:
+                    sender = await event.get_sender()
+                    username = getattr(sender, "username", None)
+                    profile = f"https://t.me/{username}" if username else f"https://t.me/user?id={event.sender_id}"
+                    for operator in operator_entities:
+                        await support_client.send_message(
+                            operator,
+                            f"📩 Yangi support muammosi\n👤 Mijoz: {profile}\n🆔 ID: {event.sender_id}\n\n{text}",
+                        )
                 response = await ai.responses.create(
                     model=os.getenv("OPENAI_MODEL", "gpt-5"),
                     instructions=support_prompt,
                     input=text,
                 )
-                await event.reply(
-                    response.output_text.strip()
-                    + "\n\nMurojaatingiz operatorga yuborildi. Tez orada javob beriladi."
-                )
+                reply = response.output_text.strip()
+                if escalate:
+                    reply += "\n\nMurojaatingiz operatorga yuborildi. Tez orada javob beriladi."
+                await event.reply(reply)
                 logger.info("Support javobi yuborildi: %s", event.id)
             except Exception:
                 logger.exception("Support javobi yuborilmadi")
