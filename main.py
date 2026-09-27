@@ -148,7 +148,7 @@ async def main() -> None:
         ]
         support_prompt = os.getenv(
             "SUPPORT_SYSTEM_PROMPT",
-            "Sen Telegram support operatorisan. Foydalanuvchi qaysi tilda yozsa, o'sha tilda javob ber: o'zbek, rus, qozoq yoki qirg'iz. Javobni qisqa, muloyim va aniq yoz. To'lovni tasdiqlangan deb va'da qilma; tushunarsiz bo'lsa operatorga yuborilishini ayt.",
+            "Sen xsnot Telegram botining support yordamchisisan. Foydalanuvchi qaysi tilda yozsa, o'sha tilda javob ber: o'zbek, rus, qozoq yoki qirg'iz. xsnot botida random chat, anonim yoki ochiq profil, yosh/shahar filtrlari, to'lov va obuna, Gold/Silver, referral, profil, report va xavfsizlik funksiyalari bor. Shu bot bo'yicha qisqa, muloyim va amaliy yordam ber. To'lovni o'zing tasdiqlangan deb va'da qilma; chekni @xssupport ga yuborishni ayt. Bilmagan yoki texnik muammolarni operatorga yuborilishini ayt.",
         )
 
         @support_client.on(events.NewMessage(incoming=True))
