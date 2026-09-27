@@ -150,7 +150,10 @@ async def main() -> None:
             logger.info("Support xabari qabul qilindi: %s", event.sender_id)
             try:
                 for operator in operator_entities:
-                    await support_client.forward_messages(operator, event.message)
+                    await support_client.send_message(
+                        operator,
+                        f"📩 Yangi support murojaati (ID: {event.sender_id}):\n\n{text}",
+                    )
                 response = await ai.responses.create(
                     model=os.getenv("OPENAI_MODEL", "gpt-5"),
                     instructions=support_prompt,
