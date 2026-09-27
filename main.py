@@ -158,6 +158,21 @@ async def main() -> None:
             for item in os.getenv("SUPPORT_OPERATORS", "@sherzodkh,@the_pasibo").split(",")
             if item.strip()
         ]
+        operator_ids = {entity.id for entity in operator_entities}
+        operator_reply_map = {}
+
+        @support_client.on(events.NewMessage(incoming=True))
+        async def relay_operator_reply(event):
+            if not event.is_private or event.sender_id not in operator_ids or not event.is_reply:
+                return
+            reply_to = await event.get_reply_message()
+            customer_id = operator_reply_map.get(reply_to.id if reply_to else None)
+            if not customer_id:
+                return
+            text = (event.raw_text or "").strip()
+            if text:
+                await support_client.send_message(customer_id, text)
+                logger.info("Operator javobi mijozga yuborildi: %s", customer_id)
         support_prompt = os.getenv(
             "SUPPORT_SYSTEM_PROMPT",
             "Sen xsnot Telegram botining support yordamchisisan. Foydalanuvchi qaysi tilda yozsa, o'sha tilda javob ber: o'zbek, rus, qozoq yoki qirg'iz. xsnot botida random chat, anonim yoki ochiq profil, yosh/shahar filtrlari, to'lov va obuna, Gold/Silver, referral, profil, report va xavfsizlik funksiyalari bor. Shu bot bo'yicha qisqa, muloyim va amaliy yordam ber. To'lovni o'zing tasdiqlangan deb va'da qilma. Bilmagan yoki texnik muammolarni operatorga yuborilishini ayt.",
@@ -166,6 +181,8 @@ async def main() -> None:
         @support_client.on(events.NewMessage(incoming=True))
         async def answer_support(event):
             if not event.is_private:
+                return
+            if event.sender_id in operator_ids:
                 return
             text = (event.raw_text or "").strip()
             if not text:
@@ -212,11 +229,12 @@ async def main() -> None:
                         else f"<a href=\"tg://user?id={event.sender_id}\">Mijoz profilini ochish</a>"
                     )
                     for operator in operator_entities:
-                        await support_client.send_message(
+                        sent = await support_client.send_message(
                             operator,
-                            f"📩 <b>Yangi support muammosi</b>\n👤 Mijoz: {profile}\n🆔 ID: <code>{event.sender_id}</code>\n\n{text}",
+                            f"📩 <b>Yangi support muammosi</b>\n👤 Mijoz: {profile}\n\n{text}",
                             parse_mode="html",
                         )
+                        operator_reply_map[sent.id] = event.sender_id
                 response = await ai.responses.create(
                     model=os.getenv("OPENAI_MODEL", "gpt-5"),
                     instructions=support_prompt,
