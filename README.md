@@ -53,3 +53,11 @@ DESTINATION_CHATS=-1001234567890
 `FILTER_REQUIRED_TEXT` xabarda bo'lishi shart bo'lgan iborani belgilaydi.
 
 Support AI uchun Railway Variables'ga `SUPPORT_SESSION_STRING`, `OPENAI_API_KEY` va `SUPPORT_CHAT=@xssupport` qo'shing. `SUPPORT_SESSION_STRING` ikkinchi Telegram akkauntiga tegishli bo'lishi kerak. API keyni GitHub'ga yozmang.
+
+Ikkinchi akkaunt session stringini olish uchun lokal `.env` fayliga vaqtincha `SUPPORT_PHONE_NUMBER` yozing va ishga tushiring:
+
+```powershell
+python export_support_session.py
+```
+
+Telegram kodi va 2FA so'raladi. Chiqqan qiymatni Railway Variables'da `SUPPORT_SESSION_STRING`ga qo'ying. Login tugagach, telefon raqamini `.env`dan o'chirib qo'ying.
