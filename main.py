@@ -63,6 +63,18 @@ def is_problem_intent(text: str) -> bool:
     return any(keyword in lowered for keyword in keywords)
 
 
+def is_xsnot_related(text: str) -> bool:
+    keywords = (
+        "xsnot", "bot", "random", "chat", "profil", "profile", "match", "obuna", "подпис",
+        "gold", "silver", "referral", "referal", "to'lov", "tolov", "платеж", "оплата",
+        "chek", "скрин", "uzcard", "humo", "paynet", "report", "shikoyat", "muammo",
+        "yordam", "ishlam", "ishlay", "ochil", "kirmay", "ro'yxat", "registr", "premium",
+        "аккаунт", "профил", "чат", "рандом", "реферал", "помощь", "ошибка", "не работает",
+    )
+    lowered = text.lower()
+    return any(keyword in lowered for keyword in keywords)
+
+
 async def main() -> None:
     try:
         api_id = int(required("API_ID"))
@@ -207,6 +219,12 @@ async def main() -> None:
                     await event.reply(
                         "Assalomu alaykum! Sizga qanday yordam bera olaman? "
                         "Aniq maqsadingiz va shikoyatingizni yozib qoldiring, muammoni hal qilishga yordam beraman."
+                    )
+                    return
+                if not is_xsnot_related(text):
+                    await event.reply(
+                        "Iltimos, bot bo‘yicha aniq muammoni yozib qoldiring. "
+                        "Boshqa savollarga javob berilmaydi va suhbat tugatiladi."
                     )
                     return
                 if state.get("waiting_problem_details"):
