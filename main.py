@@ -1,4 +1,5 @@
 import asyncio
+import difflib
 import logging
 import os
 import re
@@ -191,7 +192,8 @@ async def main() -> None:
             try:
                 state = support_state.setdefault(event.sender_id, {"last": "", "repeats": 0})
                 normalized = " ".join(text.lower().split())
-                if normalized and normalized == state["last"]:
+                similarity = difflib.SequenceMatcher(None, normalized, state["last"]).ratio() if normalized and state["last"] else 0
+                if normalized and (normalized == state["last"] or similarity >= 0.78):
                     state["repeats"] += 1
                 else:
                     state["last"] = normalized
