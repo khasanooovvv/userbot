@@ -3,6 +3,7 @@ import difflib
 import logging
 import os
 import re
+import time
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -173,6 +174,7 @@ async def main() -> None:
         ]
         operator_ids = {entity.id for entity in operator_entities}
         operator_reply_map = {}
+        muted_until = {}
 
         async def notify_operators(event, text, title="Yangi support murojaati"):
             sender = await event.get_sender()
@@ -199,6 +201,19 @@ async def main() -> None:
             if not customer_id:
                 return
             text = (event.raw_text or "").strip()
+            mute_match = re.fullmatch(r"/mute\s+([0-9]{1,2})", text.lower())
+            if mute_match:
+                hours = int(mute_match.group(1))
+                if 1 <= hours <= 24:
+                    muted_until[customer_id] = time.time() + hours * 3600
+                    await event.reply(f"Mijoz {hours} soatga mute qilindi.")
+                else:
+                    await event.reply("/mute uchun 1 dan 24 gacha soat kiriting.")
+                return
+            if text.lower() == "/unmute":
+                muted_until.pop(customer_id, None)
+                await event.reply("Mijoz mute holatidan chiqarildi.")
+                return
             if text:
                 await support_client.send_message(customer_id, text)
                 logger.info("Operator javobi mijozga yuborildi: %s", customer_id)
@@ -213,6 +228,10 @@ async def main() -> None:
                 return
             if event.sender_id in operator_ids:
                 return
+            if muted_until.get(event.sender_id, 0) > time.time():
+                return
+            if event.sender_id in muted_until:
+                muted_until.pop(event.sender_id, None)
             text = (event.raw_text or "").strip()
             if not text:
                 return
