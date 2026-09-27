@@ -7,6 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
+from openai import AsyncOpenAI
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -119,7 +120,46 @@ async def main() -> None:
             except Exception:
                 logger.exception("Xabar %s yuborilmadi", message.id)
 
+    support_task = None
+    support_session = os.getenv("SUPPORT_SESSION_STRING", "").strip()
+    openai_key = os.getenv("OPENAI_API_KEY", "").strip()
+    support_chat = os.getenv("SUPPORT_CHAT", "@xssupport").strip()
+    if support_session and openai_key:
+        support_client = TelegramClient(StringSession(support_session), api_id, api_hash)
+        await support_client.connect()
+        if not await support_client.is_user_authorized():
+            raise RuntimeError("SUPPORT_SESSION_STRING yaroqsiz yoki muddati tugagan")
+        support_entity = await support_client.get_entity(support_chat)
+        ai = AsyncOpenAI(api_key=openai_key)
+        support_prompt = os.getenv(
+            "SUPPORT_SYSTEM_PROMPT",
+            "Sen Telegram support operatorisan. Foydalanuvchi qaysi tilda yozsa, o'sha tilda javob ber: o'zbek, rus, qozoq yoki qirg'iz. Javobni qisqa, muloyim va aniq yoz. To'lovni tasdiqlangan deb va'da qilma; tushunarsiz bo'lsa operatorga yuborilishini ayt.",
+        )
+
+        @support_client.on(events.NewMessage(chats=support_entity, incoming=True))
+        async def answer_support(event):
+            text = (event.raw_text or "").strip()
+            if not text:
+                return
+            try:
+                response = await ai.responses.create(
+                    model=os.getenv("OPENAI_MODEL", "gpt-5"),
+                    instructions=support_prompt,
+                    input=text,
+                )
+                await event.reply(response.output_text.strip())
+                logger.info("Support javobi yuborildi: %s", event.id)
+            except Exception:
+                logger.exception("Support javobi yuborilmadi")
+
+        logger.info("Support AI yoqildi: %s", support_chat)
+        support_task = asyncio.create_task(support_client.run_until_disconnected())
+    else:
+        logger.info("Support AI o'chirilgan: SUPPORT_SESSION_STRING yoki OPENAI_API_KEY yo'q")
+
     await client.run_until_disconnected()
+    if support_task:
+        await support_task
 
 
 if __name__ == "__main__":

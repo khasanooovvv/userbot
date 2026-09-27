@@ -51,3 +51,5 @@ DESTINATION_CHATS=-1001234567890
 `FILTER_AMOUNTS` orqali faqat kerakli summalarni qabul qilish mumkin. Summalarni vergul bilan ajrating.
 `FILTER_CARD_LAST4` orqali pul tushadigan karta oxirgi 4 raqamini belgilang.
 `FILTER_REQUIRED_TEXT` xabarda bo'lishi shart bo'lgan iborani belgilaydi.
+
+Support AI uchun Railway Variables'ga `SUPPORT_SESSION_STRING`, `OPENAI_API_KEY` va `SUPPORT_CHAT=@xssupport` qo'shing. `SUPPORT_SESSION_STRING` ikkinchi Telegram akkauntiga tegishli bo'lishi kerak. API keyni GitHub'ga yozmang.
