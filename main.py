@@ -145,7 +145,7 @@ async def main() -> None:
     support_task = None
     support_session = os.getenv("SUPPORT_SESSION_STRING", "").strip()
     openai_key = os.getenv("OPENAI_API_KEY", "").strip()
-    support_chat = os.getenv("SUPPORT_CHAT", "@xssupport").strip()
+    support_chat = os.getenv("SUPPORT_CHAT", "support").strip()
     if support_session and openai_key:
         support_client = TelegramClient(StringSession(support_session), api_id, api_hash)
         await support_client.connect()
@@ -160,7 +160,7 @@ async def main() -> None:
         ]
         support_prompt = os.getenv(
             "SUPPORT_SYSTEM_PROMPT",
-            "Sen xsnot Telegram botining support yordamchisisan. Foydalanuvchi qaysi tilda yozsa, o'sha tilda javob ber: o'zbek, rus, qozoq yoki qirg'iz. xsnot botida random chat, anonim yoki ochiq profil, yosh/shahar filtrlari, to'lov va obuna, Gold/Silver, referral, profil, report va xavfsizlik funksiyalari bor. Shu bot bo'yicha qisqa, muloyim va amaliy yordam ber. To'lovni o'zing tasdiqlangan deb va'da qilma; chekni @xssupport ga yuborishni ayt. Bilmagan yoki texnik muammolarni operatorga yuborilishini ayt.",
+            "Sen xsnot Telegram botining support yordamchisisan. Foydalanuvchi qaysi tilda yozsa, o'sha tilda javob ber: o'zbek, rus, qozoq yoki qirg'iz. xsnot botida random chat, anonim yoki ochiq profil, yosh/shahar filtrlari, to'lov va obuna, Gold/Silver, referral, profil, report va xavfsizlik funksiyalari bor. Shu bot bo'yicha qisqa, muloyim va amaliy yordam ber. To'lovni o'zing tasdiqlangan deb va'da qilma. Bilmagan yoki texnik muammolarni operatorga yuborilishini ayt.",
         )
 
         @support_client.on(events.NewMessage(incoming=True))
