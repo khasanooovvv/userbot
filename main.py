@@ -184,6 +184,12 @@ async def main() -> None:
                     return
                 first_message = "first" not in state
                 state["first"] = True
+                if first_message and normalized in {"salom", "assalom", "assalomu alaykum", "hello", "hi"}:
+                    await event.reply(
+                        "Assalomu alaykum! Sizga qanday yordam bera olaman? "
+                        "Aniq maqsadingiz va shikoyatingizni yozib qoldiring, muammoni hal qilishga yordam beraman."
+                    )
+                    return
                 if state.get("waiting_problem_details"):
                     escalate = True
                     state["waiting_problem_details"] = False
