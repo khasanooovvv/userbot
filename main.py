@@ -141,6 +141,7 @@ async def main() -> None:
         if not await support_client.is_user_authorized():
             raise RuntimeError("SUPPORT_SESSION_STRING yaroqsiz yoki muddati tugagan")
         ai = AsyncOpenAI(api_key=openai_key)
+        support_state = {}
         operator_entities = [
             await support_client.get_entity(item.strip())
             for item in os.getenv("SUPPORT_OPERATORS", "@sherzodkh,@the_pasibo").split(",")
@@ -160,6 +161,18 @@ async def main() -> None:
                 return
             logger.info("Support xabari qabul qilindi: %s", event.sender_id)
             try:
+                state = support_state.setdefault(event.sender_id, {"last": "", "repeats": 0})
+                normalized = " ".join(text.lower().split())
+                if normalized and normalized == state["last"]:
+                    state["repeats"] += 1
+                else:
+                    state["last"] = normalized
+                    state["repeats"] = 0
+                if state["repeats"] >= 2:
+                    await event.reply("Kechirasiz, suhbat tugatildi. Iltimos, aniq maqsadingiz yoki muammoingizni yozib qoldiring.")
+                    return
+                first_message = "first" not in state
+                state["first"] = True
                 escalate = needs_operator(text)
                 if escalate:
                     sender = await event.get_sender()
@@ -176,6 +189,8 @@ async def main() -> None:
                     input=text,
                 )
                 reply = response.output_text.strip()
+                if first_message:
+                    reply = "Assalomu alaykum! Sizga qanday yordam bera olaman? Aniq maqsadingiz va shikoyatingizni yozib qoldiring, muammoni hal qilishga yordam beraman.\n\n" + reply
                 if escalate:
                     reply += "\n\nMurojaatingiz operatorga yuborildi. Tez orada javob beriladi."
                 await event.reply(reply)
