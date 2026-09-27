@@ -51,6 +51,17 @@ def needs_operator(text: str) -> bool:
     return any(keyword in lowered for keyword in keywords)
 
 
+def is_problem_intent(text: str) -> bool:
+    keywords = (
+        "bot ishlamay", "bot ishlamadi", "kamchilik", "xato", "muammo", "shikoyat",
+        "to'lov", "tolov", "pul tushmadi", "hisoblanmadi", "obuna ishlamay",
+        "не работает", "ошибка", "проблем", "оплата", "платеж", "деньги не",
+        "мәселе", "төлем", "ақша түсп", "көйгөй", "төлөм", "акча түшп",
+    )
+    lowered = text.lower()
+    return any(keyword in lowered for keyword in keywords)
+
+
 async def main() -> None:
     try:
         api_id = int(required("API_ID"))
@@ -173,7 +184,18 @@ async def main() -> None:
                     return
                 first_message = "first" not in state
                 state["first"] = True
-                escalate = needs_operator(text)
+                if state.get("waiting_problem_details"):
+                    escalate = True
+                    state["waiting_problem_details"] = False
+                elif is_problem_intent(text):
+                    state["waiting_problem_details"] = True
+                    await event.reply(
+                        "Bot yoki to'lov tizimida muammo bo'lsa, iltimos muammoni batafsil yozib qoldiring. "
+                        "Keyin murojaatingiz operatorga yuboriladi."
+                    )
+                    return
+                else:
+                    escalate = needs_operator(text)
                 if escalate:
                     sender = await event.get_sender()
                     username = getattr(sender, "username", None)
