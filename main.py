@@ -200,11 +200,16 @@ async def main() -> None:
                 if escalate:
                     sender = await event.get_sender()
                     username = getattr(sender, "username", None)
-                    profile = f"https://t.me/{username}" if username else f"https://t.me/user?id={event.sender_id}"
+                    profile = (
+                        f"<a href=\"https://t.me/{username}\">@{username}</a>"
+                        if username
+                        else f"<a href=\"tg://user?id={event.sender_id}\">Mijoz profilini ochish</a>"
+                    )
                     for operator in operator_entities:
                         await support_client.send_message(
                             operator,
-                            f"📩 Yangi support muammosi\n👤 Mijoz: {profile}\n🆔 ID: {event.sender_id}\n\n{text}",
+                            f"📩 <b>Yangi support muammosi</b>\n👤 Mijoz: {profile}\n🆔 ID: <code>{event.sender_id}</code>\n\n{text}",
+                            parse_mode="html",
                         )
                 response = await ai.responses.create(
                     model=os.getenv("OPENAI_MODEL", "gpt-5"),
