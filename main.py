@@ -221,7 +221,7 @@ async def main() -> None:
                         "Aniq maqsadingiz va shikoyatingizni yozib qoldiring, muammoni hal qilishga yordam beraman."
                     )
                     return
-                if not is_xsnot_related(text):
+                if not is_xsnot_related(text) and not state.get("waiting_problem_details"):
                     await event.reply(
                         "Iltimos, bot bo‘yicha aniq muammoni yozib qoldiring. "
                         "Boshqa savollarga javob berilmaydi va suhbat tugatiladi."
@@ -232,11 +232,19 @@ async def main() -> None:
                     state["waiting_problem_details"] = False
                 elif is_problem_intent(text):
                     state["waiting_problem_details"] = True
-                    await event.reply(
-                        "Salom! To‘lov sekin ishlayotganidan uzr. Iltimos, qaysi to‘lov turi ekanini "
-                        "va qancha vaqt oldin amalga oshirganingizni yozing. Chek yoki to‘lov "
-                        "skrinshotini yuboring — operator tekshiradi va tez orada javob beradi."
-                    )
+                    if "sekin" in text.lower() or "задерж" in text.lower():
+                        reply = (
+                            "To‘lov sekin ishlayotganidan uzr. Iltimos, qaysi to‘lov turi ekanini "
+                            "va qancha vaqt oldin amalga oshirganingizni yozing. Chek yoki to‘lov "
+                            "skrinshotini yuboring — operator tekshiradi va tez orada javob beradi."
+                        )
+                    else:
+                        reply = (
+                            "Iltimos, bot yoki to‘lov tizimidagi muammoni batafsil yozib qoldiring. "
+                            "Qaysi xizmatdan foydalanganingizni va nima ishlamayotganini yozing. "
+                            "Operator tekshiradi va tez orada javob beradi."
+                        )
+                    await event.reply(reply)
                     return
                 else:
                     escalate = needs_operator(text)
