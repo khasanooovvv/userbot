@@ -130,6 +130,11 @@ async def main() -> None:
         if not await support_client.is_user_authorized():
             raise RuntimeError("SUPPORT_SESSION_STRING yaroqsiz yoki muddati tugagan")
         ai = AsyncOpenAI(api_key=openai_key)
+        operator_entities = [
+            await support_client.get_entity(item.strip())
+            for item in os.getenv("SUPPORT_OPERATORS", "@sherzodkh,@the_pasibo").split(",")
+            if item.strip()
+        ]
         support_prompt = os.getenv(
             "SUPPORT_SYSTEM_PROMPT",
             "Sen Telegram support operatorisan. Foydalanuvchi qaysi tilda yozsa, o'sha tilda javob ber: o'zbek, rus, qozoq yoki qirg'iz. Javobni qisqa, muloyim va aniq yoz. To'lovni tasdiqlangan deb va'da qilma; tushunarsiz bo'lsa operatorga yuborilishini ayt.",
@@ -144,12 +149,17 @@ async def main() -> None:
                 return
             logger.info("Support xabari qabul qilindi: %s", event.sender_id)
             try:
+                for operator in operator_entities:
+                    await support_client.forward_messages(operator, event.message)
                 response = await ai.responses.create(
                     model=os.getenv("OPENAI_MODEL", "gpt-5"),
                     instructions=support_prompt,
                     input=text,
                 )
-                await event.reply(response.output_text.strip())
+                await event.reply(
+                    response.output_text.strip()
+                    + "\n\nMurojaatingiz operatorga yuborildi. Tez orada javob beriladi."
+                )
                 logger.info("Support javobi yuborildi: %s", event.id)
             except Exception:
                 logger.exception("Support javobi yuborilmadi")
